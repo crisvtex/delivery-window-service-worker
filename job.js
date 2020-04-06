@@ -1,15 +1,11 @@
 /*  
-    APP: SERVICE WORKER PARA REGLAS DE BLOQUEO DE VENTANAS AGENDADAS
-    Logica para comparar los pedidos de las reglas vs los pedidos actuales de la ventana.
-    Con esto se debe llamar a la API REST de VTEX para guardar el bloqueo, y luego a
-    la API Firestore para cambiar el estado de la regla a "ejecutado" 
+    JS SCRIPT PARA SERVICE WORKER DE VENTANAS
 */
 
 // Reference the node-schedule npm package.
 const schedule = require('node-schedule');
 const FireStoreParser = require('firestore-parser')
 const fetch = require('node-fetch')
-
 const admin = require('firebase-admin');
 
 // constantes globales
@@ -19,7 +15,6 @@ const collection = 'reglaBloqueo'
 const testRegla = '1LsU1SoiQwAqQWqPMASy'
 
 const serviceAccount = require('./serviceAccountKey.json');
-
 const { appKey, appToken } = require('./vtexApiKeys')
 
 //initialize admin SDK using serciceAcountKey
@@ -197,7 +192,7 @@ const ejecutarRegla = async (idRegla) => {
         redirect: 'no-follow'
     }
     const response = await fetchApi(url,options)
-    // console.log('ejecutarRegla:', response)
+    console.log('ejecutarRegla:', response)
     return response
 }
 
@@ -393,6 +388,5 @@ const getReglasActivasPorCarrierId = async (carrierId) => {
     // console.log('getReglasActivasPorCarrierId:', filteredResponse)
     return filteredResponse
 }
-
 
 mainJob()
