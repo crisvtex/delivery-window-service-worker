@@ -50,6 +50,7 @@ scheduleJob: function() {
     // See http://stackoverflow.com/a/5398044/1252653
     rule1min = '* * * * *'
     rule1hour = '0 * * * *'
+    rule10mins = '*/10 * * * *'
 
     // Código de recorrer reglas
     const mainJob = async () => {
@@ -402,7 +403,7 @@ scheduleJob: function() {
 
 
     // Kick off the job
-    const job = schedule.scheduleJob(rule1hour, function() {
+    const job = schedule.scheduleJob(rule10mins, function() {
         console.log(Date())
         mainJob()
     });
