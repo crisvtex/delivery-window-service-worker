@@ -4,7 +4,7 @@
   "description": "",
   "main": "job.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node job.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
