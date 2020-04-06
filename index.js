@@ -48,7 +48,8 @@ const APP = {
 scheduleJob: function() {
     // This rule is standard cron syntax for once per minute.
     // See http://stackoverflow.com/a/5398044/1252653
-    rule1min = '* * * * *';
+    rule1min = '* * * * *'
+    rule1hour = '0 * * * *'
 
     // Código de recorrer reglas
     const mainJob = async () => {
@@ -401,7 +402,7 @@ scheduleJob: function() {
 
 
     // Kick off the job
-    const job = schedule.scheduleJob(rule1min, function() {
+    const job = schedule.scheduleJob(rule1hour, function() {
         console.log(Date())
         mainJob()
     });
@@ -417,38 +418,3 @@ init: function() {
 (function(){
 APP.init();
 })();
-
-
-// const getReglasActivasFetchAPI = async () => {
-        
-//     // Endpoint API POST Firestore para hacer update de un registro en la coleccion reglaBloqueo
-//     const url = `https://firestore.googleapis.com/v1beta1/projects/${projectID}/databases/(default)/documents/${collection}?key=${key}`
-
-//     const headers = {
-//         "Content-Type": "application/json",
-//         "Accept": "application/json"
-//     }
-    
-//     const options = {
-//         method: 'GET',
-//         headers,
-//         redirect: 'no-follow'
-//     }
-
-//     const response = await fetchApi(url,options)
-//     const parsedResponse = await FireStoreParser(response)
-//     const arrayDocs = await parsedResponse.documents
-//     // console.log(parsedResponse.documents)
-//     let filteredResponse = []
-//     for(doc of arrayDocs) {
-//         let estado = doc.fields.estado
-//         // console.log(estado)
-//         if(estado == 'activa') {
-//             filteredResponse.push(doc)
-//         }
-//     }
-//     // console.log('Reglas activas: ', filteredResponse)
-//     return filteredResponse
-// }
-
-// getReglasActivasFetchAPI()
