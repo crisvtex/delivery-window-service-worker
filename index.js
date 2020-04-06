@@ -126,6 +126,8 @@ scheduleJob: function() {
         const fechaDesde = '2020-04-01T03:00:00.000Z'
         const fechaHasta = '2020-04-03T02:59:59.999Z'
 
+        //falta definir fechas dinámicamente.
+
         // Endpoint API POST Firestore para hacer update de un registro en la coleccion reglaBloqueo
         const url = `https://vtexchileqa.myvtex.com/api/oms/pvt/orders?f_creationDate=creationDate:[${fechaDesde} TO ${fechaHasta}]&per_page=100`
 
