@@ -61,7 +61,7 @@ const mainJob = async () => {
 
             if(validacion) {
                 // ejecutar bloqueos de ventanas
-                ejecutarRegla(carrierId)
+                ejecutarRegla(idRegla)
                 // Cambiar estado de reglas ejecutadas
                 setReglaEjecutada(idRegla)
                 console.log(`Regla ${idRegla} ejecutada exitosamente`)
@@ -87,20 +87,28 @@ const cuentaPedidosDeRegla = async (idRegla) => {
 
     // traer pedidos de hoy y mañana (list orders) filtrados por carrier
     const pedidos = await getPedidos()
-    //console.log("pedidos:", pedidos)
+    // console.log("pedidos:", pedidos)
 
     // obtiene ventana de la regla
     const ventanaRegla = await getVentanaRegla(idRegla)
     //console.log("ventana regla:", ventanaRegla)
     
     const ventanaReglaFormateada = ventanaRegla+'.0000000+00:00'
-    //console.log('ventanaReglaFormateada', ventanaReglaFormateada)
+    console.log('ventanaReglaFormateada: ', ventanaReglaFormateada)
 
     // filtrar por ventana de regla (ShippingEstimatedDateMax) para hacer la cuenta de productos
     if(ventanaReglaFormateada) {
-        pedidosFiltrados = await pedidos.filter(pedido => pedido.ShippingEstimatedDateMax != ventanaReglaFormateada)
+
+        pedidosFiltrados = await pedidos.filter(pedido => {
+            let ventanaPedido = pedido.ShippingEstimatedDateMax
+            if(ventanaPedido) {
+                // console.log('orderId: ', pedido.orderId)
+                // console.log('ventanaPedido: ', ventanaPedido)
+            }
+            return ventanaPedido == ventanaReglaFormateada
+        })
     }
-    //console.log('pedidosFiltrados:', pedidosFiltrados)
+    // console.log('pedidosFiltrados:', pedidosFiltrados)
 
     // contar los pedidos (cantidad de elementos en el array anterior)
     cuentaPedidos = Object.keys(pedidosFiltrados).length
@@ -111,12 +119,14 @@ const cuentaPedidosDeRegla = async (idRegla) => {
 }
 
 const getPedidos = async () => {
-    // traer pedidos de hoy y mañana (list orders)
-    const fechaDesde = '2020-04-01T03:00:00.000Z'
-    const fechaHasta = '2020-04-03T02:59:59.999Z'
 
     //falta definir fechas dinámicamente.
-        
+    // const diaDesde = new Date().today()
+
+
+    // traer pedidos de los ultimos 7 días (list orders)
+    const fechaDesde = '2020-04-01T03:00:00.000Z'
+    const fechaHasta = '2020-04-07T02:59:59.999Z'
 
     // Endpoint API POST Firestore para hacer update de un registro en la coleccion reglaBloqueo
     const url = `https://vtexchileqa.myvtex.com/api/oms/pvt/orders?f_creationDate=creationDate:[${fechaDesde} TO ${fechaHasta}]&per_page=100`
@@ -125,7 +135,8 @@ const getPedidos = async () => {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "X-VTEX-API-AppKey": appKey,
-        "X-VTEX-API-AppToken": appToken
+        "X-VTEX-API-AppToken": appToken,
+        "Cache-Control": "no-cache"
     }
     
     const options = {
@@ -144,7 +155,7 @@ const getPedidos = async () => {
             urlPaginada = `${url}&page=${i}`
             // console.log('urlPaginada', urlPaginada)
             const pedidosTemp = await fetchApi(urlPaginada,options)
-            //console.log('pedidosTemp', pedidosTemp.list.length)
+            // console.log('pedidosTemp', pedidosTemp.list)
 
             for(var i = 0; i <= pedidosTemp.list.length -1 ; i++){
                 pedidosConsolidado.push(pedidosTemp.list[i])
@@ -175,11 +186,14 @@ const validarRegla = async (idRegla) => {
 const ejecutarRegla = async (idRegla) => {
 
     // Endpoint API POST MW Heroku apuntando a Logistics VTEX para guardar un bloqueo de ventana de despacho
-        
-    const carrierId = getCarrierIdRegla(idRegla)
-    const ventana = getVentanaRegla(idRegla)
+    console.log('idRegla: ', idRegla)
+    const carrierId = await getCarrierIdRegla(idRegla)
+    console.log('carrierId: ', carrierId)
+    const ventana = await getVentanaRegla(idRegla)
+    console.log('ventana:', ventana)
 
     const url = `https://fast-waters-15057.herokuapp.com/addBlockedWindows/${carrierId}?windowToBlock=${ventana}`
+    console.log('url: ', url)
 
     const headers = {
         "Content-Type": "application/json",
@@ -219,7 +233,7 @@ const getEstadoRegla = async (idRegla) => {
 }
 
 // Código de consulta estado de regla
-const getVentanaRegla = async (idRegla) => {
+const getVentanaReglaFetchAPI = async (idRegla) => {
         
     const url = `https://firestore.googleapis.com/v1beta1/projects/${projectID}/databases/(default)/documents/${collection}/${idRegla}?key=${key}`
         
@@ -241,8 +255,39 @@ const getVentanaRegla = async (idRegla) => {
     return ventana
 }
 
+const getVentanaRegla = async (idRegla) => {
+    try {
+        let collection = db.collection("reglaBloqueo").doc(idRegla)
+        let doc = await collection.get()
+        if (!doc.exists) {
+            console.log('No such document!');
+        } else {
+            // console.log('ventanaPorBloquear: ', doc.data().ventanaPorBloquear)
+            return doc.data().ventanaPorBloquear
+        }
+    } catch (error) {
+        console.log('Error recibiendo la ventana', error);
+    }
+}
+
 // Código de consulta estado de regla
 const getCarrierIdRegla = async (idRegla) => {
+    try {
+        let collection = db.collection("reglaBloqueo").doc(idRegla)
+        let doc = await collection.get()
+        if (!doc.exists) {
+            console.log('No such document!');
+        } else {
+            // console.log('carrierIdRegla: ', doc.data().carrierId)
+            return doc.data().carrierId
+        }
+    } catch (error) {
+        console.log('Error recibiendo las reglas', error);
+    }  
+}
+
+// Código de consulta estado de regla
+const getCarrierIdReglaFetchAPI = async (idRegla) => {
         
     const url = `https://firestore.googleapis.com/v1beta1/projects/${projectID}/databases/(default)/documents/${collection}/${idRegla}?key=${key}`
         
@@ -260,7 +305,7 @@ const getCarrierIdRegla = async (idRegla) => {
     const response = await fetchApi(url,options)
     const parsedResponse = await FireStoreParser(response)
     const carrierId = await parsedResponse.fields.carrierId
-    // console.log('getCarrierIdRegla:', parsedResponse.fields.carrierId)
+     console.log('getCarrierIdRegla:', parsedResponse.fields.carrierId)
     return carrierId
 }
 
