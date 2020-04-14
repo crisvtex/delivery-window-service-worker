@@ -125,8 +125,8 @@ const getPedidos = async () => {
 
 
     // traer pedidos de los ultimos 7 días (list orders)
-    const fechaDesde = '2020-04-11T03:00:00.000Z'
-    const fechaHasta = '2020-04-30T02:59:59.999Z' 
+    const fechaDesde = '2020-04-01T03:00:00.000Z'
+    const fechaHasta = '2020-12-31T02:59:59.999Z' 
     
 
     // Endpoint API POST Firestore para hacer update de un registro en la coleccion reglaBloqueo
